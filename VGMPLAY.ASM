@@ -8,7 +8,7 @@
 ; Compile with:
 ;
 ;   TASM -80 -b VGMPLAY.ASM VGMPLAY.COM
-
+                OUTPUT vp2.com
 P8X180          .EQU    0                   ; System configuration
 RC2014          .EQU    1
 
@@ -29,6 +29,10 @@ RSEL2           .EQU    0A0H                ; Seconday AY-3-8910 Register select
 RDAT2           .EQU    0A1H                ; Seconday AY-3-8910 Register data
 PSGREG          .EQU    0FFH                ; Primary SN76489
 PSG2REG         .EQU    0FBH                ; Seconday SN76489
+OPL3ADDR1       .EQU    090H                ; OPL3 Register1
+OPL3DATA1       .EQU    091H                ; OPL3 Register2
+OPL3ADDR2       .EQU    092H                ; OPL3 Register3
+OPL3DATA2       .EQU    093H                ; OPL3 Register4
 FRAME_DLY       .EQU    15                  ; Frame delay (~ 1/44100)
                 .ENDIF
 
@@ -170,8 +174,35 @@ NEXT            LD      A, (HL)
                 LD      (VGMPOS), HL
                 JR      NEXT
 NEXT1           CP      4FH                 ; Game Gear SN76489 stereo. Ignored
-                JR      NZ, PSG
+                JR      NZ, OPL2
                 INC     HL
+                JR      NEXT
+OPL2            CP      5AH                 ; Write to OPL2
+                JR      NZ, OPL31
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3ADDR1), A
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3DATA1), A
+                JR      NEXT
+OPL31           CP      5EH                 ; Write to OPL3 reg1
+                JR      NZ, OPL32
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3ADDR1), A
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3DATA1), A
+                JR      NEXT
+OPL32           CP      5FH                 ; Write to OPL3 reg2
+                JR      NZ, PSG
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3ADDR2), A
+                LD      A, (HL)
+                INC     HL
+                OUT     (OPL3DATA2), A
                 JR      NEXT
 PSG             CP      50H                 ; Write byte to SN76489.
                 JR      NZ, PSG2
