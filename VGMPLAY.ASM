@@ -144,7 +144,21 @@ EXIT
                 XOR     A
                 OUT     (RDAT), A
                 OUT     (RDAT2), A
-
+                ; clear 0x00-0xFF on OPL3 banks (addr1/data1 and addr2/data2)
+                LD      BC, 0100H
+opl3_reset_loop
+                LD      A, C
+                OUT     (OPL3ADDR1), A
+                LD      A, 0
+                OUT     (OPL3DATA1), A
+                LD      A, C
+                OUT     (OPL3ADDR2), A
+                LD      A, 0
+                OUT     (OPL3DATA2), A
+                DEC     BC
+                LD      A, B
+                OR      C
+                JP      NZ, opl3_reset_loop
                 LD      SP, (OLDSTACK)
                 RST     00H
 
@@ -227,12 +241,12 @@ AY              CP      0A0H
                 LD      A, (HL)
                 INC     HL
                 OUT     (RDAT2), A
-                JR      NEXT
+                JP      NEXT
 AY1             OUT     (RSEL), A
                 LD      A, (HL)
                 INC     HL
                 OUT     (RDAT), A
-                JR      NEXT
+                JP      NEXT
 WAITNN          CP      61H                 ; Wait nn samples
                 JR      NZ, WAIT60
                 LD      A, (HL)
